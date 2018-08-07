@@ -1,0 +1,6 @@
+https://console.firebase.google.com/u/1/project/mindgame-2c354/analytics/app/android:elbazpolisanovleib.com.mindgame/overview%3Ft=17&cs=app.m.dashboard.overview&g=1
+
+
+
+
+https://fabric.io/shenkar6/android/apps/elbazpolisanovleib.com.mindgame/issues?time=last-seven-days&event_type=crash&subFilter=state&state=open&build%5B0%5D=top-builds

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "919762005899",
+    "firebase_url": "https://mindgame-2c354.firebaseio.com",
+    "project_id": "mindgame-2c354",
+    "storage_bucket": "mindgame-2c354.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:919762005899:android:adba5a23185ccab2",
+        "android_client_info": {
+          "package_name": "elbazpolisanovleib.com.mindgame"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "919762005899-l8lr1hj0evr0a2fbnmetu37p3ju9pk7b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "elbazpolisanovleib.com.mindgame",
+            "certificate_hash": "92ed87f97ac8f5155cc780524175434ac38fd14a"
+          }
+        },
+        {
+          "client_id": "919762005899-2mlu4u734p3o2lad1hiso84p89g0m6gt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqMdP2SucXpM8GGGlpizYFgWXbeOw9SIg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "919762005899-2mlu4u734p3o2lad1hiso84p89g0m6gt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
