@@ -8,7 +8,6 @@ import android.view.WindowManager;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
 public class AboutActivity extends AppCompatActivity {
-
     //FirebaseAnalytics object to track the activity
     private FirebaseAnalytics mFirebaseAnalytics;
 

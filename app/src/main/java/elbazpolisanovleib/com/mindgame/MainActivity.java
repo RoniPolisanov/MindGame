@@ -2,8 +2,10 @@ package elbazpolisanovleib.com.mindgame;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.CountDownTimer;
 import android.support.v4.content.ContextCompat;
@@ -26,7 +28,6 @@ import com.crashlytics.android.Crashlytics;
 import io.fabric.sdk.android.Fabric;
 
 public class MainActivity extends AppCompatActivity {
-
     // Firebase Analytics Object
     private FirebaseAnalytics mFirebaseAnalytics;
 
@@ -37,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     View prev = null, next = null;
 
     // Temporary variables to show stars at the bottom of each stage when the game is started
-    // These will be used as Leaderboard score variables.
+    // These will be used as Leader board score variables.
     int level1Stars, level2Stars, level3Stars, level4Stars, level5Stars, level6Stars;
 
     // Number of slides/images matched
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     // The user won dialog will be shown in this text view
     TextView userWon;
 
-    // the play button on the main screen
+    // the playbutton on the main screen
     ImageView playButton;
 
     // share button on the main screen, first it was settings then changed to share button
@@ -65,12 +66,12 @@ public class MainActivity extends AppCompatActivity {
     TextView beginner, easy, medium, hard, hardest, master;
 
     // This is the blue background views for each stage..
-    // These are loaded when the play button is pressed and stages are shown.
+    // These are loaded when the playbutton is pressed and stages are shown.
     View beginnerBackground, easyBackground, mediumBackground, hardBackground, hardestBackground, masterBackground;
 
     // keep track of state of the game
     // 0 means user is at the start screen, where there is logo and other buttons
-    // 1 means user has pressed play button and at the stages are shown to the user
+    // 1 means user has pressed playbutton and at the stages are shown to the user
     // 2 means the user is playing the game and is at a level
     int state = 0;
 
@@ -78,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     TextView logo;
 
     // These are all the backs of animal images in the stages, number of images are shown according to stage
-    // Only required iamges are shown others are hidden
+    // Only required images are shown others are hidden
     ImageView image1, image2, image3, image4, image5, image6, image7, image8, image9, image10, image11, image12, image13, image14, image15, image16;
 
     // The timer textview in the stage
@@ -124,11 +125,11 @@ public class MainActivity extends AppCompatActivity {
 
     // About button in main menu
     TextView about;
+    int volumeVal = 10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         // Initialization of fabric
         Fabric.with(this, new Crashlytics());
 
@@ -145,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
         tutorial.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Take the user to tutorail activity
+                // Take the user to tutorial activity
                 Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
                 startActivity(intent);
             }
@@ -171,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Checking from sharedpreferences if user has turned off volume or it is on
+        // Checking from shared preferences if user has turned off volume or it is on
         SharedPreferences msharedPreferences = getSharedPreferences("volumeCheck", MODE_PRIVATE);
         volumeCheck = msharedPreferences.getInt("volume", 0);
 
@@ -182,15 +183,18 @@ public class MainActivity extends AppCompatActivity {
         bgm.setLooping(true);
 
         // if volume is not turned off, start the music and set a turning off image for volume button
-
         if (volumeCheck == 0) {
             // start playing the background music
+            SharedPreferences msharedPreferences1 = getSharedPreferences("volumeValue", MODE_PRIVATE);
+            volumeVal = msharedPreferences1.getInt("volumeVal", 10);
+            AudioManager mAudioManager = (AudioManager)MainActivity.this.getSystemService(Context.AUDIO_SERVICE);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 10 * volumeVal / 10, 0);
             bgm.start();
             // set the icon to turn off
-            volumeIcon.setImageResource(R.drawable.ic_mute);
+            volumeIcon.setImageResource(R.drawable.ic_settings);
         } else {
             // set the icon to turn on
-            volumeIcon.setImageResource(R.drawable.ic_volume);
+            volumeIcon.setImageResource(R.drawable.ic_settings);
         }
 
         soundButton = findViewById(R.id.volumeButton);
@@ -199,33 +203,10 @@ public class MainActivity extends AppCompatActivity {
         soundButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // check what is the previous value for volumecheck in the sharedpreferences
-                SharedPreferences msharedPreferences = getSharedPreferences("volumeCheck", MODE_PRIVATE);
-                volumeCheck = msharedPreferences.getInt("volume", 0);
-
-                // if volume is on pause it
-                if (volumeCheck == 0) {
-
-                    volumeCheck = 1;
-                    volumeIcon.setImageResource(R.drawable.ic_volume);
-                    SharedPreferences sharedPreferences = getSharedPreferences("volumeCheck", MODE_PRIVATE);
-                    SharedPreferences.Editor mSharedEditor = sharedPreferences.edit();
-                    mSharedEditor.putInt("volume", 1);
-                    mSharedEditor.commit();
-                    bgm.pause();
-                } else {
-                    // strt playing the music and update it's value in shared preferences
-                    volumeCheck = 0;
-                    volumeIcon.setImageResource(R.drawable.ic_mute);
-                    SharedPreferences sharedPreferences = getSharedPreferences("volumeCheck", MODE_PRIVATE);
-                    SharedPreferences.Editor mSharedEditor = sharedPreferences.edit();
-                    mSharedEditor.putInt("volume", 0);
-                    mSharedEditor.commit();
-                    bgm.start();
-                }
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
             }
         });
-
 
         // binding pause button with it's xml view
         pauseButton = findViewById(R.id.pauseGame);
@@ -257,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
         // binding the backbutton view
         backButton = findViewById(R.id.backbutton);
 
-        // making the back button disappear because game hasn't started yet
+        // making the backbutton disappear because game hasn't started yet
         backButton.setVisibility(View.GONE);
 
         // binding the logo view
@@ -354,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
         hardestBackground = findViewById(R.id.hardestStage);
         masterBackground = findViewById(R.id.masterStage);
 
-        // settting on click listener for back button
+        // setting on click listener for back button
         // back button will only appear when a user has started a stage
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -370,6 +351,10 @@ public class MainActivity extends AppCompatActivity {
 
                 // if user has turned on volume, make the sound of button
                 if (volumeCheck == 0) {
+                    SharedPreferences msharedPreferences1 = getSharedPreferences("volumeValue", MODE_PRIVATE);
+                    volumeVal = msharedPreferences1.getInt("volumeVal", 10);
+                    AudioManager mAudioManager = (AudioManager)MainActivity.this.getSystemService(Context.AUDIO_SERVICE);
+                    mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 15 * volumeVal / 10, 0);
                     click.start();
                 }
 
@@ -399,10 +384,10 @@ public class MainActivity extends AppCompatActivity {
                 // make the state 1, means user is on the stages area
                 state = 1;
 
-                // make the timer disappear bcause game isn't started
+                // make the timer disappear because game isn't started
                 timer.setVisibility(View.GONE);
 
-                // make the play button disappear because it's stages area
+                // make the playbutton disappear because it's stages area
                 playButton.setVisibility(View.INVISIBLE);
 
                 //  make the play about disappear because it's stages area
@@ -436,10 +421,15 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 // if volume is turned on make the sound of button click
                 if (volumeCheck == 0) {
+                    SharedPreferences msharedPreferences1 = getSharedPreferences("volumeValue", MODE_PRIVATE);
+                    volumeVal = msharedPreferences1.getInt("volumeVal", 10);
+                    AudioManager mAudioManager = (AudioManager)MainActivity.this.getSystemService(Context.AUDIO_SERVICE);
+                    mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 15 * volumeVal / 10, 0);
                     click.start();
                 }
+
                 // if we are at state 0 means main page that opens up on game opening
-                // then make the about, ttorial, logo, and play button disappear
+                // then make the about, tutorial, logo, and playbutton disappear
                 // because we are going to the stages area
                 if (state == 0) {
                     about.setVisibility(View.GONE);
@@ -448,7 +438,7 @@ public class MainActivity extends AppCompatActivity {
                     // load the stages area
                     one();
 
-                    // make the logo diappear
+                    // make the logo disappear
                     logo.animate().alpha(0.0f);
 
                     // make the playbutton disappear by fireworks.
@@ -467,10 +457,13 @@ public class MainActivity extends AppCompatActivity {
                 // As the user has started stage 1
                 // make the pause button visible
                 pauseButton.setVisibility(View.VISIBLE);
+
                 // hide the stages area as user has selected stage 1
                 hideStageArea();
+
                 // make the timer visible because game has started
                 timer.setVisibility(View.VISIBLE);
+
                 //hide the settings, play, about and tutorial button because game has started and we are not in main
                 // menu or stages area
                 settingsButton.setVisibility(View.GONE);
@@ -594,7 +587,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent txtIntent = new Intent(android.content.Intent.ACTION_SEND);
                 txtIntent.setType("text/plain");
                 txtIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Mind GAME");
-                txtIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Hi, Check this amazing Mind Game, it's awesome! Download from below link.\nhttps://yyyroni.000webhostapp.com");
+                txtIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Hi, Check this amazing Mind Game, it's awesome! Download from below link.\nhttps://play.google.com/store/apps/details?id=elbazpolisanovleib.com.mindgame");
                 startActivity(Intent.createChooser(txtIntent, "Share"));
             }
         });
@@ -624,11 +617,11 @@ public class MainActivity extends AppCompatActivity {
         state = 1;
 
         // as we are going to load the stages area, so there are maximum number of stars each
-        // user has scored, to keep track of stars we use sharedpreferences
-        // so getting the maximum number of stars scored by user from the sharedpreferences
+        // user has scored, to keep track of stars we use shared preferences
+        // so getting the maximum number of stars scored by user from the shared preferences
         SharedPreferences msharedPreferences = getSharedPreferences("stars", MODE_PRIVATE);
 
-        // these integer varaibles hold maximum number of stars scored by user on each stage
+        // these integer variables hold maximum number of stars scored by user on each stage
         level1Stars = msharedPreferences.getInt("stage1star", 0);
         level2Stars = msharedPreferences.getInt("stage2star", 0);
         level3Stars = msharedPreferences.getInt("stage3star", 0);
@@ -768,13 +761,14 @@ public class MainActivity extends AppCompatActivity {
         // state 2 means playing a game
         state = 0;
 
-        // make the logo viible because we are in the main menu
+        // make the logo visible because we are in the main menu
         logo.setVisibility(View.VISIBLE);
 
         // make the logo visible by animation and the animation will take 1500
         logo.animate().alpha(1.0f).setDuration(1500);
 
         // hiding the stages area
+
         // hide stars for stage 1
         hideViewByAnimation(beginnerStageStar1);
         hideViewByAnimation(beginnerStageStar2);
@@ -845,12 +839,12 @@ public class MainActivity extends AppCompatActivity {
     // This method is for showing the view by animation
     // whatever view is passed to this method is shown by animation
     public void showViewByAnimation(View view) {
-
         // if view is not null
         if (view != null) {
             // View.VISIBLE means view is present on the layout and visible
             // View.INVISIBLE means view is present but not visible
             // View.GONE means view is not present on the layout
+
             // Make the view present and visible on the layout
             view.setVisibility(View.VISIBLE);
 
@@ -880,7 +874,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Method for hiding views by animation
     public void hideViewByAnimation(View view) {
-
         // temporary variable used to save the views that are to be hidden
         viewForHiding = view;
         // if no stage is being played then hide the playbutton for stages screen
@@ -955,7 +948,6 @@ public class MainActivity extends AppCompatActivity {
         image4.setVisibility(View.GONE);
         image5.setVisibility(View.GONE);
         image6.setVisibility(View.GONE);
-
 
         // second row of images shown on  stage 1
         // showing second row of images
@@ -1119,13 +1111,13 @@ public class MainActivity extends AppCompatActivity {
         loadAnimalImagesForStage3();
     }
 
-
     public void loadStage4() {
         // Load Stage 2
         // Hide the stages area
         // Make the logo gone because it's not the main screen
         goToOne();
         logo.setVisibility(View.GONE);
+
         // set state to 3 which means the user is playing game
         state = 3;
 
@@ -1254,6 +1246,7 @@ public class MainActivity extends AppCompatActivity {
 
         // set state to 3 which means the user is playing game
         state = 3;
+
         // Showing six images in the first row
         // because total 16 images are included in the stage6
         image1.setVisibility(View.VISIBLE);
@@ -1302,7 +1295,7 @@ public class MainActivity extends AppCompatActivity {
         // Let the user interact/play with images
         playStage6();
 
-        // decie which images will be same in level 6
+        // decide which images will be same in level 6
         loadAnimalImagesForStage6();
     }
 
@@ -1368,22 +1361,19 @@ public class MainActivity extends AppCompatActivity {
     When game is started prev is null, next is null, prevView is null, nextView is null and clickCount = 0;
     When user clicks on an image (let's say the image is imageX) clickCount = 1, prev = animalImageX, next = null, prevView = imageX and nextView = null
     Then when second image is clicked, if second clicked image is not the same image clicked previously then
-    prev = animalImageX, next = animalImageY, prevView = imageX, nextView = imageY and then we check if prev and next both contain same anime/cartoon/animal
+    prev = animalImageX, next = animalImageY, prevView = imageX, nextView = imageY and then we check if prev and next both contain same cartoon/animal
     if prev and next contain same image then SCORE++, and we check if the user has won or not, in case of stage 1 we check if (SCORE = 3), for stage 2 if (SCORE == 4)
     for stage 3 if (SCORE = 5) for stage 4 if (SCORE == 6) for stage 5 if(SCORE == 7) for stage 6 if (SCORE == 8), if the condition matches then we show
     the win status, if not, then we do prev = null, next = null, prevView = null, nextView = null, and then user has to select the images of their choice again.
     This continues until user completes the game
-
     If user wins, then we check if checkTim > 11, then we give 3 stars to user, if (checkTime > 0  && checkTime < 11) then we give 2 stars, and if (checkTime == 0 || checkTime < 0)
     then we give only 1 star.
-
     This continues for every stage.
-
     As playStage is same for all of the stages and the same conditions are executed, except just the same images sequence is changed for all of the stages
-    so we don't need to comment same text above every onclick Listner.
+    so we don't need to comment same text above every onclick Listener.
 
     whenever two slides match we play a sound
-     */
+    */
 
     // playStage1() is called in the end of loadImages1
     public void playStage1() {
@@ -1398,7 +1388,6 @@ public class MainActivity extends AppCompatActivity {
         image1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 // clickCount = 2 means user has already selected two images
                 // no need to allow user to select an image/card if
                 // user has already selected two images.
@@ -1407,14 +1396,12 @@ public class MainActivity extends AppCompatActivity {
                     // show the image and hide the back of the image
                     hideViewByAnimation(image1);
                     showAnimalImage(animalImage1);
-
                     // if there is no image showed already (means all of the animal images are hidden)
                     if (prev == null) {
                         // set prev to animalimage1
-                        // set prevview to image1
+                        // set preview to image1
                         prev = animalImage1;
                         prevView = image1;
-
                         // clickcount++ because user has selected an image
                         clickCount++;
                     } else {
@@ -1423,21 +1410,17 @@ public class MainActivity extends AppCompatActivity {
                             // user has clicked second image
                             // next is now second image means user has already selected an image
                             next = animalImage1;
-
-                            // nextview is image 1 means there is already a prevview
+                            // nextview is image 1 means there is already a preview
                             nextView = image1;
-
                             // clickcount is 2 now, means 2 images are shown
                             clickCount++;
-
                             // as two images are shown, checking if both the images are same
                             if (prev == animalImage9) {
                                 // this code will run if both the images are same
                                 // the mobile will wait for 1.5 seconds before incrementing to the score, and before hiding the values
                                 // meanwhile the click on the images will be blocked
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         // 1.5 seconds have passed now click count is again 0 and now user can select any two images
                                         clickCount = 0;
@@ -1462,17 +1445,20 @@ public class MainActivity extends AppCompatActivity {
                                         // if user has turned the volume on then the matching sound will be played.
                                         if (volumeCheck == 0) {
                                             if (volumeCheck == 0) {
+                                                SharedPreferences msharedPreferences1 = getSharedPreferences("volumeValue", MODE_PRIVATE);
+                                                volumeVal = msharedPreferences1.getInt("volumeVal", 10);
+                                                AudioManager mAudioManager = (AudioManager)MainActivity.this.getSystemService(Context.AUDIO_SERVICE);
+                                                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 15 * volumeVal / 10, 0);
                                                 matched.start();
                                             }
                                         }
                                     }
                                 }.start();
-
                             } else {
                                 // prev and next images were not same
                                 // now wait 1.5 seconds before hiding the images.
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         // clickCount = 0 means now user can click any two images
                                         clickCount = 0;
@@ -1485,7 +1471,7 @@ public class MainActivity extends AppCompatActivity {
                                         showViewByAnimation(nextView);
                                         showViewByAnimation(prevView);
 
-                                        // set the temporary vlaues to default so that they can be used with other clicks as well.
+                                        // set the temporary values to default so that they can be used with other clicks as well.
                                         prevView = null;
                                         prev = null;
                                         next = null;
@@ -1494,10 +1480,8 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
-
                 }
             }
-
         });
 
         image2.setOnClickListener(new View.OnClickListener() {
@@ -1516,8 +1500,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image2;
                             clickCount++;
                             if (prev == animalImage7) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         bugCheckImage2 = 1;
@@ -1530,14 +1514,17 @@ public class MainActivity extends AppCompatActivity {
                                         next = null;
                                         checkWin();
                                         if (volumeCheck == 0) {
+                                            SharedPreferences msharedPreferences1 = getSharedPreferences("volumeValue", MODE_PRIVATE);
+                                            volumeVal = msharedPreferences1.getInt("volumeVal", 10);
+                                            AudioManager mAudioManager = (AudioManager)MainActivity.this.getSystemService(Context.AUDIO_SERVICE);
+                                            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 15 * volumeVal / 10, 0);
                                             matched.start();
                                         }
                                     }
                                 }.start();
-
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -1549,6 +1536,10 @@ public class MainActivity extends AppCompatActivity {
                                         next = null;
                                         checkWin();
                                         if (volumeCheck == 0) {
+                                            SharedPreferences msharedPreferences1 = getSharedPreferences("volumeValue", MODE_PRIVATE);
+                                            volumeVal = msharedPreferences1.getInt("volumeVal", 10);
+                                            AudioManager mAudioManager = (AudioManager)MainActivity.this.getSystemService(Context.AUDIO_SERVICE);
+                                            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 15 * volumeVal / 10, 0);
                                             matched.start();
                                         }
                                     }
@@ -1576,9 +1567,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image3;
                             clickCount++;
                             if (prev == animalImage8) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         bugCheckImage3 = 1;
@@ -1595,11 +1585,9 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }.start();
-
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
-
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -1614,7 +1602,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
-
                 }
             }
         });
@@ -1635,8 +1622,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image7;
                             clickCount++;
                             if (prev == animalImage2) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         bugCheckImage7 = 1;
@@ -1653,10 +1640,9 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }.start();
-
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -1691,8 +1677,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image8;
                             clickCount++;
                             if (prev == animalImage3) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         bugCheckImage8 = 1;
@@ -1709,10 +1695,9 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }.start();
-
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -1747,8 +1732,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image9;
                             clickCount++;
                             if (prev == animalImage1) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         bugCheckImage1 = 1;
@@ -1765,10 +1750,9 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }.start();
-
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -1783,13 +1767,10 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
-
                 }
             }
         });
-
     }
-
 
     public void playStage2() {
         stageImageCheck = 2;
@@ -1810,8 +1791,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage1;
                             nextView = image1;
                             if (prev == animalImage8) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -1827,8 +1808,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -1843,10 +1824,8 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
-
                 }
             }
-
         });
 
         image2.setOnClickListener(new View.OnClickListener() {
@@ -1865,8 +1844,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage2;
                             nextView = image2;
                             if (prev == animalImage4) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -1882,8 +1861,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -1918,8 +1897,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage3;
                             nextView = image3;
                             if (prev == animalImage9) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -1935,8 +1914,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -1971,8 +1950,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage4;
                             nextView = image4;
                             if (prev == animalImage2) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -1988,8 +1967,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2024,8 +2003,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage7;
                             nextView = image7;
                             if (prev == animalImage10) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2041,8 +2020,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2077,8 +2056,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage8;
                             nextView = image8;
                             if (prev == animalImage1) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2094,8 +2073,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2130,8 +2109,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage9;
                             nextView = image9;
                             if (prev == animalImage3) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2147,8 +2126,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2184,8 +2163,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage10;
                             nextView = image10;
                             if (prev == animalImage7) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2201,8 +2180,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2241,8 +2220,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image1;
                             clickCount++;
                             if (prev == animalImage4) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2258,8 +2237,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2276,7 +2255,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-
         });
 
         image2.setOnClickListener(new View.OnClickListener() {
@@ -2295,8 +2273,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image2;
                             clickCount++;
                             if (prev == animalImage9) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2312,8 +2290,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2348,8 +2326,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image3;
                             clickCount++;
                             if (prev == animalImage11) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2365,8 +2343,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2381,7 +2359,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
-
                 }
             }
         });
@@ -2402,8 +2379,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image4;
                             clickCount++;
                             if (prev == animalImage1) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2419,8 +2396,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2455,8 +2432,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image5;
                             clickCount++;
                             if (prev == animalImage8) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2472,8 +2449,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2488,7 +2465,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
-
                 }
             }
         });
@@ -2509,8 +2485,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image7;
                             clickCount++;
                             if (prev == animalImage10) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2526,8 +2502,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2542,7 +2518,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
-
                 }
             }
         });
@@ -2553,7 +2528,6 @@ public class MainActivity extends AppCompatActivity {
                 if (clickCount != 2 && pauseCheck == 0) {
                     hideViewByAnimation(image8);
                     showAnimalImage(animalImage8);
-
                     if (prev == null) {
                         clickCount++;
                         prev = animalImage8;
@@ -2564,8 +2538,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image8;
                             clickCount++;
                             if (prev == animalImage5) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2580,10 +2554,9 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }.start();
-
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2598,7 +2571,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
-
                 }
             }
         });
@@ -2619,8 +2591,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image9;
                             clickCount++;
                             if (prev == animalImage2) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2636,8 +2608,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2672,8 +2644,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image10;
                             clickCount++;
                             if (prev == animalImage7) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2689,8 +2661,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2725,8 +2697,8 @@ public class MainActivity extends AppCompatActivity {
                             nextView = image11;
                             clickCount++;
                             if (prev == animalImage3) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2741,10 +2713,9 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }.start();
-
                             } else {
                                 new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2767,11 +2738,9 @@ public class MainActivity extends AppCompatActivity {
     public void playStage4() {
         stageImageCheck = 4;
         startTimer();
-
         image1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 if (clickCount != 2 && pauseCheck == 0) {
                     hideViewByAnimation(image1);
                     showAnimalImage(animalImage1);
@@ -2784,10 +2753,9 @@ public class MainActivity extends AppCompatActivity {
                             clickCount++;
                             next = animalImage1;
                             nextView = image1;
-
                             if (prev == animalImage9) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2803,8 +2771,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2839,8 +2807,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage2;
                             nextView = image2;
                             if (prev == animalImage13) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2856,8 +2824,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2892,8 +2860,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage3;
                             nextView = image3;
                             if (prev == animalImage16) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2909,8 +2877,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2945,8 +2913,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage4;
                             nextView = image4;
                             if (prev == animalImage14) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -2962,8 +2930,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -2999,8 +2967,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage7;
                             nextView = image7;
                             if (prev == animalImage10) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3015,10 +2983,9 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }.start();
-
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3053,8 +3020,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage8;
                             nextView = image8;
                             if (prev == animalImage15) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3070,8 +3037,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3086,7 +3053,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
-
                 }
             }
         });
@@ -3107,9 +3073,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage9;
                             nextView = image9;
                             if (prev == animalImage1) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3125,8 +3090,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3142,7 +3107,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
-
             }
         });
 
@@ -3162,9 +3126,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage10;
                             nextView = image10;
                             if (prev == animalImage7) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3179,10 +3142,9 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }.start();
-
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3217,8 +3179,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage13;
                             nextView = image13;
                             if (prev == animalImage2) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3234,8 +3196,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3270,8 +3232,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage14;
                             nextView = image14;
                             if (prev == animalImage4) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3287,8 +3249,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3306,7 +3268,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
 
         image15.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -3324,8 +3285,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage15;
                             nextView = image15;
                             if (prev == animalImage8) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3341,8 +3302,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3361,7 +3322,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         image16.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -3378,8 +3338,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage16;
                             nextView = image16;
                             if (prev == animalImage3) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         clickCount = 0;
@@ -3395,9 +3355,10 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }.start();
+
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3435,10 +3396,9 @@ public class MainActivity extends AppCompatActivity {
                             clickCount++;
                             next = animalImage1;
                             nextView = image1;
-
                             if (prev == animalImage14) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3454,8 +3414,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3472,14 +3432,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-
         });
 
         image2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (clickCount != 2 && pauseCheck == 0) {
-
                     hideViewByAnimation(image2);
                     showAnimalImage(animalImage2);
                     if (prev == null) {
@@ -3492,8 +3450,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage2;
                             nextView = image2;
                             if (prev == animalImage11) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3509,8 +3467,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3545,8 +3503,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage3;
                             nextView = image3;
                             if (prev == animalImage16) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3562,8 +3520,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3598,8 +3556,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage4;
                             nextView = image4;
                             if (prev == animalImage13) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3614,10 +3572,9 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }.start();
-
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3652,8 +3609,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage5;
                             nextView = image5;
                             if (prev == animalImage9) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3669,8 +3626,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3705,8 +3662,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage7;
                             nextView = image7;
                             if (prev == animalImage10) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3721,10 +3678,9 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }.start();
-
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3759,8 +3715,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage8;
                             nextView = image8;
                             if (prev == animalImage15) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3776,8 +3732,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3812,8 +3768,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage9;
                             nextView = image9;
                             if (prev == animalImage5) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3829,8 +3785,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3865,8 +3821,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage10;
                             nextView = image10;
                             if (prev == animalImage7) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3882,8 +3838,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3918,8 +3874,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage11;
                             nextView = image11;
                             if (prev == animalImage2) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3934,9 +3890,10 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }.start();
+
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -3971,8 +3928,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage13;
                             nextView = image13;
                             if (prev == animalImage4) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -3988,8 +3945,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4024,8 +3981,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage14;
                             nextView = image14;
                             if (prev == animalImage1) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4041,8 +3998,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4077,8 +4034,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage15;
                             nextView = image15;
                             if (prev == animalImage8) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4094,8 +4051,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4130,8 +4087,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage16;
                             nextView = image16;
                             if (prev == animalImage3) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4147,8 +4104,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4168,11 +4125,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    //======================================================================================================================================
     public void playStage6() {
         stageImageCheck = 6;
         startTimer();
-
         image1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -4188,8 +4143,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage1;
                             nextView = image1;
                             if (prev == animalImage10) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4205,8 +4160,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4241,8 +4196,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage2;
                             nextView = image2;
                             if (prev == animalImage11) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4258,8 +4213,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4294,8 +4249,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage3;
                             nextView = image3;
                             if (prev == animalImage15) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4311,8 +4266,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4347,8 +4302,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage4;
                             nextView = image4;
                             if (prev == animalImage8) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4364,8 +4319,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4400,8 +4355,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage5;
                             nextView = image5;
                             if (prev == animalImage9) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4417,8 +4372,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4453,8 +4408,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage6;
                             nextView = image6;
                             if (prev == animalImage13) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4470,8 +4425,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4506,8 +4461,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage7;
                             nextView = image7;
                             if (prev == animalImage14) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4523,8 +4478,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4559,8 +4514,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage8;
                             nextView = image8;
                             if (prev == animalImage4) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4576,8 +4531,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4612,8 +4567,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage9;
                             nextView = image9;
                             if (prev == animalImage5) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4629,8 +4584,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4665,8 +4620,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage10;
                             nextView = image10;
                             if (prev == animalImage1) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4682,8 +4637,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4718,8 +4673,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage11;
                             nextView = image11;
                             if (prev == animalImage2) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4735,8 +4690,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4771,8 +4726,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage12;
                             nextView = image12;
                             if (prev == animalImage16) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4788,8 +4743,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4824,8 +4779,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage13;
                             nextView = image13;
                             if (prev == animalImage6) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4841,8 +4796,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4877,8 +4832,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage14;
                             nextView = image14;
                             if (prev == animalImage7) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4894,8 +4849,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4930,8 +4885,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage15;
                             nextView = image15;
                             if (prev == animalImage3) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -4947,8 +4902,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -4983,8 +4938,8 @@ public class MainActivity extends AppCompatActivity {
                             next = animalImage16;
                             nextView = image16;
                             if (prev == animalImage12) {
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         SCORE++;
@@ -5000,9 +4955,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             } else {
-                                //ik mint men michele nal gal kr rian
-                                new CountDownTimer(1500, 750) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-                                    public void onTick(long millisUntilFinished) { }
+                                new CountDownTimer(1500, 750) { //30000 milliseconds is total time, 1000 milliseconds is time interval
+                                    public void onTick(long millisUntilFinished) {}
                                     public void onFinish() {
                                         clickCount = 0;
                                         hideAnimalImage(prev);
@@ -5018,6 +4972,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
+
             }
         });
     }
@@ -5053,7 +5008,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
         }
-
     }
 
     // Assigning the images to the images views.
@@ -5063,7 +5017,6 @@ public class MainActivity extends AppCompatActivity {
         // assigning the image view an image
         animalImage1.setVisibility(View.INVISIBLE);
         animalImage1.setImageResource(R.drawable.animal1);
-
         // making the image placeholder invisible as by default it would be hidden
         // assigning the image view an image
         animalImage9.setVisibility(View.INVISIBLE);
@@ -5073,7 +5026,6 @@ public class MainActivity extends AppCompatActivity {
         // assigning the image view an image
         animalImage2.setVisibility(View.INVISIBLE);
         animalImage2.setImageResource(R.drawable.animal2);
-
         // making the image placeholder invisible as by default it would be hidden
         // assigning the image view an image
         animalImage7.setVisibility(View.INVISIBLE);
@@ -5083,7 +5035,6 @@ public class MainActivity extends AppCompatActivity {
         // assigning the image view an image
         animalImage3.setVisibility(View.INVISIBLE);
         animalImage3.setImageResource(R.drawable.animal3);
-
         // making the image placeholder invisible as by default it would be hidden
         // assigning the image view an image
         animalImage8.setVisibility(View.INVISIBLE);
@@ -5097,7 +5048,6 @@ public class MainActivity extends AppCompatActivity {
         animalImage2.setVisibility(View.INVISIBLE);
         animalImage3.setVisibility(View.INVISIBLE);
         animalImage4.setVisibility(View.INVISIBLE);
-
         animalImage7.setVisibility(View.INVISIBLE);
         animalImage8.setVisibility(View.INVISIBLE);
         animalImage9.setVisibility(View.INVISIBLE);
@@ -5107,7 +5057,6 @@ public class MainActivity extends AppCompatActivity {
         animalImage2.setImageResource(R.drawable.animal5);
         animalImage3.setImageResource(R.drawable.animal7);
         animalImage4.setImageResource(R.drawable.animal5);
-
         animalImage7.setImageResource(R.drawable.animal6);
         animalImage8.setImageResource(R.drawable.animal4);
         animalImage9.setImageResource(R.drawable.animal7);
@@ -5120,7 +5069,6 @@ public class MainActivity extends AppCompatActivity {
         animalImage3.setVisibility(View.INVISIBLE);
         animalImage4.setVisibility(View.INVISIBLE);
         animalImage5.setVisibility(View.INVISIBLE);
-
         animalImage7.setVisibility(View.INVISIBLE);
         animalImage8.setVisibility(View.INVISIBLE);
         animalImage9.setVisibility(View.INVISIBLE);
@@ -5132,7 +5080,6 @@ public class MainActivity extends AppCompatActivity {
         animalImage3.setImageResource(R.drawable.animal3);
         animalImage4.setImageResource(R.drawable.animal8);
         animalImage5.setImageResource(R.drawable.animal5);
-
         animalImage7.setImageResource(R.drawable.animal7);
         animalImage8.setImageResource(R.drawable.animal5);
         animalImage9.setImageResource(R.drawable.animal1);
@@ -5145,12 +5092,10 @@ public class MainActivity extends AppCompatActivity {
         animalImage2.setVisibility(View.INVISIBLE);
         animalImage3.setVisibility(View.INVISIBLE);
         animalImage4.setVisibility(View.INVISIBLE);
-
         animalImage7.setVisibility(View.INVISIBLE);
         animalImage8.setVisibility(View.INVISIBLE);
         animalImage9.setVisibility(View.INVISIBLE);
         animalImage10.setVisibility(View.INVISIBLE);
-
         animalImage13.setVisibility(View.INVISIBLE);
         animalImage14.setVisibility(View.INVISIBLE);
         animalImage15.setVisibility(View.INVISIBLE);
@@ -5160,12 +5105,10 @@ public class MainActivity extends AppCompatActivity {
         animalImage2.setImageResource(R.drawable.animal4);
         animalImage3.setImageResource(R.drawable.animal6);
         animalImage4.setImageResource(R.drawable.animal8);
-
         animalImage7.setImageResource(R.drawable.animal1);
         animalImage8.setImageResource(R.drawable.animal5);
         animalImage9.setImageResource(R.drawable.animal2);
         animalImage10.setImageResource(R.drawable.animal1);
-
         animalImage13.setImageResource(R.drawable.animal4);
         animalImage14.setImageResource(R.drawable.animal8);
         animalImage15.setImageResource(R.drawable.animal5);
@@ -5178,13 +5121,11 @@ public class MainActivity extends AppCompatActivity {
         animalImage3.setVisibility(View.INVISIBLE);
         animalImage4.setVisibility(View.INVISIBLE);
         animalImage5.setVisibility(View.INVISIBLE);
-
         animalImage7.setVisibility(View.INVISIBLE);
         animalImage8.setVisibility(View.INVISIBLE);
         animalImage9.setVisibility(View.INVISIBLE);
         animalImage10.setVisibility(View.INVISIBLE);
         animalImage11.setVisibility(View.INVISIBLE);
-
         animalImage13.setVisibility(View.INVISIBLE);
         animalImage14.setVisibility(View.INVISIBLE);
         animalImage15.setVisibility(View.INVISIBLE);
@@ -5195,13 +5136,11 @@ public class MainActivity extends AppCompatActivity {
         animalImage3.setImageResource(R.drawable.animal2);
         animalImage4.setImageResource(R.drawable.animal3);
         animalImage5.setImageResource(R.drawable.animal1);
-
         animalImage7.setImageResource(R.drawable.animal5);
         animalImage8.setImageResource(R.drawable.animal6);
         animalImage9.setImageResource(R.drawable.animal1);
         animalImage10.setImageResource(R.drawable.animal5);
         animalImage11.setImageResource(R.drawable.animal4);
-
         animalImage13.setImageResource(R.drawable.animal3);
         animalImage14.setImageResource(R.drawable.animal7);
         animalImage15.setImageResource(R.drawable.animal6);
@@ -5215,14 +5154,12 @@ public class MainActivity extends AppCompatActivity {
         animalImage4.setVisibility(View.INVISIBLE);
         animalImage5.setVisibility(View.INVISIBLE);
         animalImage6.setVisibility(View.INVISIBLE);
-
         animalImage7.setVisibility(View.INVISIBLE);
         animalImage8.setVisibility(View.INVISIBLE);
         animalImage9.setVisibility(View.INVISIBLE);
         animalImage10.setVisibility(View.INVISIBLE);
         animalImage11.setVisibility(View.INVISIBLE);
         animalImage12.setVisibility(View.INVISIBLE);
-
         animalImage13.setVisibility(View.INVISIBLE);
         animalImage14.setVisibility(View.INVISIBLE);
         animalImage15.setVisibility(View.INVISIBLE);
@@ -5234,21 +5171,17 @@ public class MainActivity extends AppCompatActivity {
         animalImage4.setImageResource(R.drawable.animal6);
         animalImage5.setImageResource(R.drawable.animal4);
         animalImage6.setImageResource(R.drawable.animal3);
-
         animalImage7.setImageResource(R.drawable.animal7);
         animalImage8.setImageResource(R.drawable.animal6);
         animalImage9.setImageResource(R.drawable.animal4);
         animalImage10.setImageResource(R.drawable.animal5);
         animalImage11.setImageResource(R.drawable.animal2);
         animalImage12.setImageResource(R.drawable.animal8);
-
         animalImage13.setImageResource(R.drawable.animal3);
         animalImage14.setImageResource(R.drawable.animal7);
         animalImage15.setImageResource(R.drawable.animal1);
         animalImage16.setImageResource(R.drawable.animal8);
     }
-
-
 
     // time is temporary variable used to hold values of time at different places
     int time = 0;
@@ -5289,14 +5222,14 @@ public class MainActivity extends AppCompatActivity {
                 time = 61;
                 break;
         }
-        //giving an hour to timer so the game keeps runing even after the time for the game has passed
+
+        //giving an hour to timer so the game keeps running even after the time for the game has passed
         // and assigning the stage time to checktime
         checktime = time;
         time = 36000 * 1000;
 
         //starting a timer with infinite time
-        countDownTimer = new CountDownTimer(time, 1000) { //30000 milli seconds is total time, 1000 milli seconds is time interval
-
+        countDownTimer = new CountDownTimer(time, 1000) { //30000 milliseconds is total time, 1000 milliseconds is time interval
             public void onTick(long millisUntilFinished) {
                 // if user has paused the game don't count time, and don't update time in textview
                 if (pauseCheck == 0) {
@@ -5313,6 +5246,7 @@ public class MainActivity extends AppCompatActivity {
         };
         countDownTimer.start();
     }
+
     /*
     This is how we determine if user has won or not
     In stage 1 we have 3 images
@@ -5321,7 +5255,6 @@ public class MainActivity extends AppCompatActivity {
     In stage 4 we have 6 images
     In stage 5 we have 7 images
     In stage 6 we have 8 images
-
     So we first check for
     stageImageCheck if it is 1, stage is 1
     stageImageCheck if it is 2, stage is 2
@@ -5329,7 +5262,6 @@ public class MainActivity extends AppCompatActivity {
     stageImageCheck if it is 4, stage is 4
     stageImageCheck if it is 5, stage is 5
     stageImageCheck if it is 6, stage is 6
-
     and then we check for scores
     if stage 1 has 3 score
     if stage 2 has 4 score
@@ -5337,18 +5269,14 @@ public class MainActivity extends AppCompatActivity {
     if stage 4 has 6 score
     if stage 5 has 7 score
     if stage 6 has 8 score
-
     then we declare that user has won the game
-
     And then we assign stars to the user by checking the checktime
-
     if checktime is > 11 user gets 3 stars
     if checktime is < 11 && checktime > 0 user gets 2 stars
     if checktime == 0 || checktime < 0 user gets 1 star
+    And then before updating in leader board we check if the current stars are greater than the previously stored stars
+    */
 
-    And then before updating in leaderboard we check if the current stars are greater than the previously stored stars
-
-     */
     // this function will keep track if user has won or not
     public void checkWin() {
         // shared preferences to check what is the previous highest score
@@ -5368,14 +5296,11 @@ public class MainActivity extends AppCompatActivity {
                 // if user has matched all of the images
                 if (SCORE == 3) {
                     countDownTimer.cancel();
-
-                    // show user won dialoge/textview
+                    // show user won dialog/textview
                     userWon.setVisibility(View.VISIBLE);
-
                     // if user's remaining time is greater than 11, give them 3 stars
                     if (checktime >= 11) {
                         STARS = 3;
-
                         //Updating the stars values in sharedpreferences
                         SharedPreferences.Editor mSharedEditor = sharedPreferences.edit();
                         mSharedEditor.putInt("stage1star", 3);
@@ -5384,20 +5309,17 @@ public class MainActivity extends AppCompatActivity {
                         winStar1.setVisibility(View.VISIBLE);
                         winStar2.setVisibility(View.VISIBLE);
                         winStar3.setVisibility(View.VISIBLE);
-
                         // Logging the firebase analytics event
                         Bundle bundle = new Bundle();
                         bundle.putString(FirebaseAnalytics.Param.SCORE, "3_STARS");
                         bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "Level 1 High Score");
                         mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.UNLOCK_ACHIEVEMENT, bundle);
-
                     } else {
                         if (checktime < 11 && checktime > 0) {
                             STARS = 2;
                             if (STARS >= level1Stars) {
                                 //Updating the stars values in sharedpreferences
                                 SharedPreferences.Editor mSharedEditor = sharedPreferences.edit();
-
                                 mSharedEditor.putInt("stage1star", 2);
                                 mSharedEditor.commit();
                                 winStar1.setVisibility(View.VISIBLE);
@@ -5416,7 +5338,6 @@ public class MainActivity extends AppCompatActivity {
                                 mSharedEditor.putInt("stage1star", 1);
                                 mSharedEditor.commit();
                                 winStar2.setVisibility(View.VISIBLE);
-
                                 // Logging the firebase analytics event
                                 Bundle bundle = new Bundle();
                                 bundle.putString(FirebaseAnalytics.Param.SCORE, "1_STAR");
@@ -5427,53 +5348,45 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 break;
-
             case 2:
                 // if user has matched all of the images
                 if (SCORE == 4) {
                     countDownTimer.cancel();
-                    // show user won dialoge/textview
+                    // show user won dialog/textview
                     userWon.setVisibility(View.VISIBLE);
 
                     // if user's remaining time is greater than 11, give them 3 stars
                     if (checktime >= 11) {
                         STARS = 3;
-
                         //Updating the stars values in sharedpreferences
                         SharedPreferences.Editor mSharedEditor = sharedPreferences.edit();
                         mSharedEditor.putInt("stage2star", 3);
                         mSharedEditor.commit();
-
                         // User has won 3 stars, make 3 stars visible
                         winStar1.setVisibility(View.VISIBLE);
                         winStar2.setVisibility(View.VISIBLE);
                         winStar3.setVisibility(View.VISIBLE);
-
                         // Logging the firebase analytics event
                         Bundle bundle = new Bundle();
                         bundle.putString(FirebaseAnalytics.Param.SCORE, "3_STAR");
                         bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "Level 2 High Score");
                         mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.UNLOCK_ACHIEVEMENT, bundle);
-
                     } else {
                         if (checktime < 11 && checktime > 0) {
                             STARS = 2;
                             if (STARS >= level2Stars) {
-
                                 //Updating the stars values in sharedpreferences
                                 SharedPreferences.Editor mSharedEditor = sharedPreferences.edit();
                                 mSharedEditor.putInt("stage2star", 2);
                                 mSharedEditor.commit();
                                 winStar1.setVisibility(View.VISIBLE);
                                 winStar2.setVisibility(View.VISIBLE);
-
                                 // Logging the firebase analytics event
                                 Bundle bundle = new Bundle();
                                 bundle.putString(FirebaseAnalytics.Param.SCORE, "2_STAR");
                                 bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "Level 2 High Score");
                                 mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.UNLOCK_ACHIEVEMENT, bundle);
                             }
-
                         } else {
                             STARS = 1;
                             if (STARS >= level2Stars) {
@@ -5492,17 +5405,15 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 break;
-
             case 3:
                 // if user has matched all of the images
                 if (SCORE == 5) {
                     countDownTimer.cancel();
-                    // show user won dialoge/textview
+                    // show user won dialog/textview
                     userWon.setVisibility(View.VISIBLE);
                     // if user's remaining time is greater than 11, give them 3 stars
                     if (checktime >= 11) {
                         STARS = 3;
-
                         //Updating the stars values in sharedpreferences
                         SharedPreferences.Editor mSharedEditor = sharedPreferences.edit();
                         mSharedEditor.putInt("stage3star", 3);
@@ -5516,7 +5427,6 @@ public class MainActivity extends AppCompatActivity {
                         bundle.putString(FirebaseAnalytics.Param.SCORE, "3_STAR");
                         bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "Level 3 High Score");
                         mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.UNLOCK_ACHIEVEMENT, bundle);
-
                     } else {
                         if (checktime < 11 && checktime > 0) {
                             STARS = 2;
@@ -5533,7 +5443,6 @@ public class MainActivity extends AppCompatActivity {
                                 bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "Level 3 High Score");
                                 mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.UNLOCK_ACHIEVEMENT, bundle);
                             }
-
                         } else {
                             STARS = 1;
                             if (STARS >= level3Stars) {
@@ -5548,27 +5457,23 @@ public class MainActivity extends AppCompatActivity {
                                 bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "Level 3 High Score");
                                 mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.UNLOCK_ACHIEVEMENT, bundle);
                             }
-
                         }
                     }
                 }
                 break;
-
             case 4:
                 // if user has matched all of the images
                 if (SCORE == 6) {
                     countDownTimer.cancel();
-                    // show user won dialoge/textview
+                    // show user won dialog/textview
                     userWon.setVisibility(View.VISIBLE);
                     // if user's remaining time is greater than 11, give them 3 stars
                     if (checktime >= 11) {
                         STARS = 3;
-
                         //Updating the stars values in sharedpreferences
                         SharedPreferences.Editor mSharedEditor = sharedPreferences.edit();
                         mSharedEditor.putInt("stage4star", STARS);
                         mSharedEditor.commit();
-
                         // User has won 3 stars, make 3 stars visible
                         winStar1.setVisibility(View.VISIBLE);
                         winStar2.setVisibility(View.VISIBLE);
@@ -5578,7 +5483,6 @@ public class MainActivity extends AppCompatActivity {
                         bundle.putString(FirebaseAnalytics.Param.SCORE, "3_STAR");
                         bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "Level 4 High Score");
                         mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.UNLOCK_ACHIEVEMENT, bundle);
-
                     } else {
                         if (checktime < 11 && checktime > 0) {
                             STARS = 2;
@@ -5595,7 +5499,6 @@ public class MainActivity extends AppCompatActivity {
                                 bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "Level 4 High Score");
                                 mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.UNLOCK_ACHIEVEMENT, bundle);
                             }
-
                         } else {
                             STARS = 1;
                             if (STARS >= level4Stars) {
@@ -5614,12 +5517,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 break;
-
             case 5:
                 // if user has matched all of the images
                 if (SCORE == 7) {
                     countDownTimer.cancel();
-                    // show user won dialoge/textview
+                    // show user won dialog/textview
                     userWon.setVisibility(View.VISIBLE);
                     // if user's remaining time is greater than 11, give them 3 stars
                     if (checktime >= 11) {
@@ -5652,7 +5554,6 @@ public class MainActivity extends AppCompatActivity {
                                 bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "Level 5 High Score");
                                 mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.UNLOCK_ACHIEVEMENT, bundle);
                             }
-
                         } else {
                             STARS = 1;
                             if (STARS >= level5Stars) {
@@ -5671,12 +5572,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 break;
-
             case 6:
                 // if user has matched all of the images
                 if (SCORE == 8) {
                     countDownTimer.cancel();
-                    // show user won dialoge/textview
+                    // show user won dialog/textview
                     userWon.setVisibility(View.VISIBLE);
                     // if user's remaining time is greater than 11, give them 3 stars
                     if (checktime >= 11) {
@@ -5689,13 +5589,11 @@ public class MainActivity extends AppCompatActivity {
                         winStar1.setVisibility(View.VISIBLE);
                         winStar2.setVisibility(View.VISIBLE);
                         winStar3.setVisibility(View.VISIBLE);
-
                         // Logging the firebase analytics event
                         Bundle bundle = new Bundle();
                         bundle.putString(FirebaseAnalytics.Param.SCORE, "3_STAR");
                         bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "Level 6 High Score");
                         mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.UNLOCK_ACHIEVEMENT, bundle);
-
                     } else {
                         if (checktime < 11 && checktime > 0) {
                             STARS = 2;
@@ -5712,7 +5610,6 @@ public class MainActivity extends AppCompatActivity {
                                 bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "Level 6 High Score");
                                 mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.UNLOCK_ACHIEVEMENT, bundle);
                             }
-
                         } else {
                             STARS = 1;
                             if (STARS >= level6Stars) {
@@ -5735,10 +5632,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // this will hide the stage area
-    // stage name and stars are automatically hiden if background is hidden because their constraints are aligned with constraints of backgrounds
+    // stage name and stars are automatically hidden if background is hidden because their constraints are aligned with constraints of backgrounds
     // so hiding the backgrounds only will do the work
     public void hideStageArea() {
-
         // hiding the backgrounds
         beginnerBackground.setVisibility(View.GONE);
         easyBackground.setVisibility(View.GONE);
@@ -5750,10 +5646,30 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        // when game is in background puase the time, time should not run when game is put in background
+        // when game is in background pause the time, time should not run when game is put in background
         pauseCheck = 1;
         super.onPause();
         bgm.pause();
+    }
+
+    @Override
+    protected void onStart() {
+        pauseCheck = 0;
+        // check if user has paused the background music then keep it paused, if not resume the music.
+        SharedPreferences msharedPreferences = getSharedPreferences("volumeCheck", MODE_PRIVATE);
+        volumeCheck = msharedPreferences.getInt("volume", 0);
+
+        if (volumeCheck == 0) {
+            SharedPreferences msharedPreferences1 = getSharedPreferences("volumeValue", MODE_PRIVATE);
+            volumeVal = msharedPreferences1.getInt("volumeVal", 10);
+            AudioManager mAudioManager = (AudioManager)MainActivity.this.getSystemService(Context.AUDIO_SERVICE);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 15 * volumeVal / 10, 0);
+            bgm.start();
+            volumeIcon.setImageResource(R.drawable.ic_settings);
+        } else {
+            volumeIcon.setImageResource(R.drawable.ic_settings);
+        }
+        super.onStart();
     }
 
     @Override
@@ -5766,12 +5682,37 @@ public class MainActivity extends AppCompatActivity {
         volumeCheck = msharedPreferences.getInt("volume", 0);
 
         if (volumeCheck == 0) {
+            SharedPreferences msharedPreferences1 = getSharedPreferences("volumeValue", MODE_PRIVATE);
+            volumeVal = msharedPreferences1.getInt("volumeVal", 10);
+
+            AudioManager mAudioManager = (AudioManager)MainActivity.this.getSystemService(Context.AUDIO_SERVICE);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 15 * volumeVal / 10, 0);
             bgm.start();
-            volumeIcon.setImageResource(R.drawable.ic_mute);
+            volumeIcon.setImageResource(R.drawable.ic_settings);
         } else {
-            volumeIcon.setImageResource(R.drawable.ic_volume);
+            volumeIcon.setImageResource(R.drawable.ic_settings);
         }
         super.onResume();
+    }
+
+    @Override
+    protected void onRestart() {
+        pauseCheck = 0;
+        // check if user has paused the background music then keep it paused, if not resume the music.
+        SharedPreferences msharedPreferences = getSharedPreferences("volumeCheck", MODE_PRIVATE);
+        volumeCheck = msharedPreferences.getInt("volume", 0);
+
+        if (volumeCheck == 0) {
+            SharedPreferences msharedPreferences1 = getSharedPreferences("volumeValue", MODE_PRIVATE);
+            volumeVal = msharedPreferences1.getInt("volumeVal", 10);
+            AudioManager mAudioManager = (AudioManager)MainActivity.this.getSystemService(Context.AUDIO_SERVICE);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 15 * volumeVal / 10, 0);
+            bgm.start();
+            volumeIcon.setImageResource(R.drawable.ic_settings);
+        } else {
+            volumeIcon.setImageResource(R.drawable.ic_settings);
+        }
+        super.onRestart();
     }
 
     // when game user presses the back button this function will be executed.
@@ -5789,19 +5730,14 @@ public class MainActivity extends AppCompatActivity {
             if (state == 1) {
                 // go back to main menu
                 showViewByAnimation(playButton);
-
                 //show the about button
                 about.setVisibility(View.VISIBLE);
-
                 // show the tutorial button
                 tutorial.setVisibility(View.VISIBLE);
-
                 // go to main menu
                 goToOne();
-
                 // show the settings button (share button)
                 settingsButton.setVisibility(View.VISIBLE);
-
                 // make the sound button visible
                 soundButton.setVisibility(View.VISIBLE);
             } else {
@@ -5833,28 +5769,20 @@ public class MainActivity extends AppCompatActivity {
                     nextView = null;
                     // hide the stage
                     hideStage();
-
                     // show the stages area
                     one();
-
                     // hide the timer
                     timer.setVisibility(View.GONE);
-
                     // show the settings button
                     settingsButton.setVisibility(View.VISIBLE);
-
                     // show the sound button
                     soundButton.setVisibility(View.VISIBLE);
-
-                    // hide the play button
+                    // hide the playbutton
                     playButton.setVisibility(View.INVISIBLE);
-
                     // hide the about button
                     about.setVisibility(View.GONE);
-
                     // hide the tutorial button
                     tutorial.setVisibility(View.GONE);
-
                     // hide the pause button
                     // hide the back button
                     pauseButton.setText("Pause Game");
@@ -5863,6 +5791,5 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
     int bugCheckImage1 = 0, bugCheckImage2 = 0, bugCheckImage3 = 0, bugCheckImage4 = 0, bugCheckImage5 = 0, bugCheckImage6 = 0, bugCheckImage7 = 0, bugCheckImage8 = 0, bugCheckImage9 = 0, bugCheckImage10 = 0, bugCheckImage11 = 0, bugCheckImage12 = 0, bugCheckImage13 = 0, bugCheckImage14 = 0, bugCheckImage15 = 0, bugCheckImage16 = 0;
 }

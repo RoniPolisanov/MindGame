@@ -9,7 +9,7 @@
         android:allowBackup="true"
         android:icon="@drawable/minilogo"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/minilogo"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
@@ -31,7 +31,7 @@
             android:name="io.fabric.ApiKey"
             android:value="2e03775aaeccdb3b82b127043dbdc3ffe8cf9a17" />
 
-        <activity android:name=".WebViewActivity"></activity>
+        <activity android:name=".WebViewActivity" />
+        <activity android:name=".SettingsActivity" />
     </application>
-
 </manifest>

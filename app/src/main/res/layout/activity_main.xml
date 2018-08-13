@@ -1017,7 +1017,7 @@
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
         android:layout_marginTop="8dp"
-        android:src="@drawable/ic_mute"
+        android:src="@drawable/ic_settings"
         android:tint="@android:color/white"
         app:layout_constraintBottom_toBottomOf="@+id/volumeButton"
         app:layout_constraintEnd_toEndOf="@+id/volumeButton"
