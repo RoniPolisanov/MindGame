@@ -20,7 +20,11 @@ Simply a bunch of card sets with cute animals that you need to pair!
 <img src="/Screenshots/Share.jpg" width="144px"><br>
 
 ### Game Instructions
-The cards needs to be flipped one at a time. Each time that two cards are flipped over, their images are compared. If the two cards are similar - success - the player gets points and the cards are vanished from the screen. If the two cards are different - failure - the player does not get points and the cards are flipped back over. The game contains 6 levels - Beginner, Easy, Medium, Hard, Hardest, Master. Game Phase: The player successfully finished the level if all the cards were matched and the board stays empty. On each level ending, the player gets points/ranking regarding to his performance. The points are expressed in ‘Stars’ that will appear under the stage name in the stage selection screen.
+The cards needs to be flipped one at a time. Each time that two cards are flipped over, their images are compared. <br>
+If the two cards are similar - success - the player gets points and the cards are vanished from the screen. <br>
+If the two cards are different - failure - the player does not get points and the cards are flipped back over. <br>
+The game contains 6 levels - Beginner, Easy, Medium, Hard, Hardest, Master. Game Phase: The player successfully finished the level if all the cards were matched and the board stays empty. <br>
+On each level ending, the player gets points/ranking regarding to his performance. The points are expressed in ‘Stars’ that will appear under the stage name in the stage selection screen.
 
 ### Credits
 - Images & Sound: <br>
